@@ -10,6 +10,22 @@ from typing import List, Dict, Any, Optional
 
 mcp = FastMCP("EDI Bridge", instructions="Bridge EDI X12 / EDIFACT B2B messages to ONE OS — parse, validate, map, govern.")
 
+# ── SIGIL: every governed action → one signed hash-chained hop (SIGIL_LOG unifies all layers) ──
+import hashlib as _hl, time as _t, json as _j, os as _os
+_SIGIL_LOG = _os.environ.get("SIGIL_LOG", _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "bridge_sigil.log"))
+def _sigil(op, body):
+    try:
+        prev = ""
+        if _os.path.exists(_SIGIL_LOG):
+            with open(_SIGIL_LOG) as f:
+                ls = f.readlines()
+                if ls: prev = _j.loads(ls[-1]).get("digest", "")
+        ts = int(_t.time()); dg = _hl.sha256(f"{op}|{ts}|{prev[:8]}|{body}".encode()).hexdigest()[:16]
+        _os.makedirs(_os.path.dirname(_SIGIL_LOG), exist_ok=True)
+        with open(_SIGIL_LOG, "a") as f: f.write(_j.dumps({"ts": ts, "op": op, "body": body, "prev_digest": prev, "digest": dg}) + "\n")
+        return dg
+    except Exception: return ""
+
 X12_TXN = {"850": "Purchase Order", "810": "Invoice", "856": "Advance Ship Notice",
            "855": "PO Acknowledgement", "997": "Functional Acknowledgement", "204": "Motor Carrier Load"}
 EDIFACT_MSG = {"ORDERS": "Purchase Order", "INVOIC": "Invoice", "DESADV": "Despatch Advice",
@@ -113,6 +129,7 @@ def map_to_modern(edi: str) -> Dict[str, Any]:
 @mcp.tool()
 def govern_edi(edi: str) -> Governance:
     """Governance: trading-partner + supply-chain compliance surface (attestable for CSOAI)."""
+    _sigil("G", "edi|govern_edi")
     p = parse_edi(edi)
     flags = []
     if not p.sender or not p.receiver:
