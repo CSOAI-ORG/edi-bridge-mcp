@@ -1,7 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
   "name": "io.github.CSOAI-ORG/edi-bridge-mcp",
-  "description": "EDI X12 / EDIFACT B2B bridge — parse, validate, map, govern (Peppol/ViDA).",
+  "description": "EDI X12 / EDIFACT B2B bridge \u2014 parse, validate, map, govern (Peppol/ViDA).",
   "version": "0.1.0",
-  "packages": [{"registry_type": "pypi", "identifier": "edi-bridge-mcp", "version": "0.1.0", "transport": {"type": "stdio"}}]
+  "packages": [
+    {
+      "identifier": "edi-bridge-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "registryType": "pypi",
+      "runtimeHint": "python"
+    }
+  ]
 }
